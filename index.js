@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 // middle ware --------- 
@@ -26,6 +26,13 @@ async function run(){
         app.get('/tool', async(req,res)=>{
             const tools = await toolCollections.find().toArray();
             res.send(tools);
+        });
+
+        app.get('/tool/:id',async( req, res)=>{
+            const id = req.params.id;
+            const filter = {_id:ObjectId(id)};
+            const result = await toolCollections.findOne(filter);
+            res.send(result);
         })
         // ---------- get review data from DB ------- 
         app.get('/review', async(req,res)=>{
