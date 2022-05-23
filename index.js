@@ -20,6 +20,7 @@ async function run(){
         //------ collections---------
         const toolCollections = client.db("toolCollection").collection("tool");
         const reviewCollections = client.db("toolCollection").collection("review");
+        const bookingCollections = client.db("toolCollection").collection("booking");
         
 
         // ---------- get tool data from DB ------- 
@@ -33,12 +34,19 @@ async function run(){
             const filter = {_id:ObjectId(id)};
             const result = await toolCollections.findOne(filter);
             res.send(result);
-        })
+        });
         // ---------- get review data from DB ------- 
         app.get('/review', async(req,res)=>{
             const tools = await reviewCollections.find().toArray();
             res.send(tools);
-        })
+        });
+
+        //--------- set booked data in mongoDB by client site ------
+        app.post('/booking', async(req,res)=>{
+            const query = req.body;
+            const result = await bookingCollections.insertOne(query);
+            res.send(result);
+        });
 
     }
     finally{
