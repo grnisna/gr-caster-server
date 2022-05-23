@@ -14,12 +14,32 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.8weku.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(err => {
-  const collection = client.db("test").collection("devices");
-  console.log('DB is connectING');
-  // perform actions on the collection object
-  client.close();
-});
+async function run(){
+    try{
+        await client.connect();
+        //------ collections---------
+        const toolCollections = client.db("toolCollection").collection("tool");
+        const reviewCollections = client.db("toolCollection").collection("review");
+        
+
+        // ---------- get tool data from DB ------- 
+        app.get('/tool', async(req,res)=>{
+            const tools = await toolCollections.find().toArray();
+            res.send(tools);
+        })
+        // ---------- get review data from DB ------- 
+        app.get('/review', async(req,res)=>{
+            const tools = await reviewCollections.find().toArray();
+            res.send(tools);
+        })
+
+    }
+    finally{
+        // await client.close();
+    }
+
+}
+run().catch(console.dir);
 
 
 // start server
