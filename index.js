@@ -84,6 +84,13 @@ async function run() {
             res.send(tools);
         });
 
+        //------------ set new review -----------------
+        app.post('/review',async(req,res)=>{
+            const query = req.body;
+            const result = await reviewCollections.insertOne(query);
+            res.send(result);
+        })
+
         //--------- set booked data in mongoDB by client site ------
         app.post('/booking', async (req, res) => {
             const query = req.body;
