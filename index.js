@@ -50,6 +50,7 @@ async function run() {
         const reviewCollections = client.db("toolCollection").collection("review");
         const bookingCollections = client.db("toolCollection").collection("booking");
         const paymentCollections = client.db("toolCollection").collection("payment");
+        const profileCollections = client.db("toolCollection").collection("profile");
 
 
         // set user to mongoDB from client site -----------------
@@ -160,6 +161,27 @@ async function run() {
             const filter = {_id:ObjectId(id)};
             const result = await bookingCollections.deleteOne(filter);
             res.send(result);
+        });
+
+        // ------- upsert profile ------
+        app.post('/profile',verifyUser,async(req,res)=>{
+            const query = req.body;
+           
+            const result = await profileCollections.insertOne(query);
+            res.send(result);
+        });
+
+        // show up data client site --------------  
+        app.get('/profile',verifyUser, async(req,res)=>{
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if( email === decodedEmail){
+                const filter = {email:email};
+                const result = await profileCollections.findOne(filter);
+                return res.send(result);
+            }else{
+               return  res.status(403).send({message:'Forbidden Access'})
+            }
         })
 
     }
