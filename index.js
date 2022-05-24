@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 5000;
-require('dotenv').config();
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -11,20 +13,59 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 app.use(cors());
 app.use(express.json());
 
+// ---------- veryfy user function -------------- 
+const verifyUser = async(req,res,next) =>{
+    const authHeader  = req.headers.authorization;
+    
+    if(!authHeader){
+        res.status(401).send({message:'Un-authorized user'})
+    }
+    const accessToken = authHeader.split(' ')[1];
+    jwt.verify(accessToken,process.env.USER_ACCESS_TOKEN,(err, decoded)=>{
+        if(err){
+            res.status(403).send({message:'Forbidden user'})
+        }
+        req.decoded = decoded;
+
+        next();
+    });
+
+    
+}
+
 //----------------- mongoDB connect ----------------
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.8weku.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+
+
 async function run() {
     try {
         await client.connect();
         //------ collections---------
+
+        const userCollections = client.db("toolCollection").collection("user");
         const toolCollections = client.db("toolCollection").collection("tool");
         const reviewCollections = client.db("toolCollection").collection("review");
         const bookingCollections = client.db("toolCollection").collection("booking");
         const paymentCollections = client.db("toolCollection").collection("payment");
 
 
+        // set user to mongoDB from client site -----------------
+        app.put('/user/:email', async(req,res)=>{
+            const email = req.params.email;
+            const user = req.body;
+            const filter = {email:email};
+            const options = { upsert: true };
+            const updateUser = {
+                $set:user
+            };
+            const result = await userCollections.updateOne(filter,updateUser,options);
+            const token = jwt.sign({email:email},process.env.USER_ACCESS_TOKEN,{expiresIn:'1d'});
+
+            res.send({result,token});
+        })
         // ---------- get tool data from DB ------- 
         app.get('/tool', async (req, res) => {
             const tools = await toolCollections.find().toArray();
@@ -51,9 +92,19 @@ async function run() {
         });
 
         // get booking data for client site --------------------
-        app.get('/booking', async (req, res) => {
-            const result = await bookingCollections.find().toArray();
-            res.send(result);
+        app.get('/booking',verifyUser, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            
+            if(email === decodedEmail){
+                const filter = {email:email}
+                const result = await bookingCollections.find(filter).toArray();
+                return res.send(result);
+            }
+            else{
+               return res.status(403).send({message:'Forbidden User'})
+            }
+
         });
 
 
@@ -94,6 +145,14 @@ async function run() {
             const allPayment = await paymentCollections.insertOne(payment);
             const updateBook = await bookingCollections.updateOne(filter,updateDoc);
             res.send(updateDoc);
+        });
+
+        // cencel book item ------------------------ 
+        app.delete('/booking/:id', async(req,res)=>{
+            const id = req.params.id;
+            const filter = {_id:ObjectId(id)};
+            const result = await bookingCollections.deleteOne(filter);
+            res.send(result);
         })
 
     }
