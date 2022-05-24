@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
-require('dotenv').config()
+require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
@@ -47,6 +48,25 @@ async function run(){
             const result = await bookingCollections.insertOne(query);
             res.send(result);
         });
+
+        // get booking data for client site --------------------
+        app.get('/booking', async(req,res)=>{
+            const result = await bookingCollections.find().toArray();
+            res.send(result);
+        });
+
+
+        //================== payment get ==================
+        app.get('/booking/:id', async(req,res)=>{
+            const id = req.params.id;
+            const filter = {_id:ObjectId(id)};
+
+            const result = await bookingCollections.findOne(filter);
+
+            res.send(result);
+        });
+
+        //
 
     }
     finally{
