@@ -16,6 +16,7 @@ app.use(express.json());
 // ---------- veryfy user function -------------- 
 const verifyUser = async (req, res, next) => {
     const authHeader = req.headers.authorization;
+    
 
     if (!authHeader) {
         res.status(401).send({ message: 'Un-authorized user' })
@@ -53,11 +54,11 @@ async function run() {
         const profileCollections = client.db("toolCollection").collection("profile");
 
 
-// -------======================================================================
-//                              product section
-// -------======================================================================
+        // -------======================================================================
+        //                              product section
+        // -------======================================================================
 
-//toolCollection-----------------------------------------------
+        //toolCollection-----------------------------------------------
         // ---------- get tool data from DB ------- 
         app.get('/tool', async (req, res) => {
             const tools = await toolCollections.find().toArray();
@@ -72,15 +73,15 @@ async function run() {
         });
 
         // remove tool --------------------
-        app.delete('/tool/:id',async(req,res)=>{
+        app.delete('/tool/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = {_id:ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
             const result = await toolCollections.deleteOne(filter);
             res.send(result);
         });
 
         // add tool ----------------------- 
-        app.post('/tool',async(req,res)=>{
+        app.post('/tool', async (req, res) => {
             const query = req.body;
             const result = await toolCollections.insertOne(query);
             res.send(result);
@@ -89,7 +90,7 @@ async function run() {
 
 
 
-//reviewCollection-----------------------------------------------
+        //reviewCollection-----------------------------------------------
         // ---------- get review data from DB ------- 
         app.get('/review', async (req, res) => {
             const tools = await reviewCollections.find().toArray();
@@ -184,16 +185,11 @@ async function run() {
         });
 
         // show up data client site --------------  
-        app.get('/profile', verifyUser, async (req, res) => {
+        app.get('/profile', async (req, res) => {
             const email = req.query.email;
-            const decodedEmail = req.decoded.email;
-            if (email === decodedEmail) {
-                const filter = { email: email };
-                const result = await profileCollections.findOne(filter);
-                return res.send(result);
-            } else {
-                return res.status(403).send({ message: 'Forbidden Access' })
-            }
+            const filter = { email: email };
+            const result = await profileCollections.findOne(filter);
+            res.send(result);
         });
 
         //------------------------------------------------------------------ 
