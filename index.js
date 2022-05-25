@@ -53,7 +53,11 @@ async function run() {
         const profileCollections = client.db("toolCollection").collection("profile");
 
 
+// -------======================================================================
+//                              product section
+// -------======================================================================
 
+//toolCollection-----------------------------------------------
         // ---------- get tool data from DB ------- 
         app.get('/tool', async (req, res) => {
             const tools = await toolCollections.find().toArray();
@@ -66,6 +70,26 @@ async function run() {
             const result = await toolCollections.findOne(filter);
             res.send(result);
         });
+
+        // remove tool --------------------
+        app.delete('/tool/:id',async(req,res)=>{
+            const id = req.params.id;
+            const filter = {_id:ObjectId(id)};
+            const result = await toolCollections.deleteOne(filter);
+            res.send(result);
+        });
+
+        // add tool ----------------------- 
+        app.post('/tool',async(req,res)=>{
+            const query = req.body;
+            const result = await toolCollections.insertOne(query);
+            res.send(result);
+        });
+
+
+
+
+//reviewCollection-----------------------------------------------
         // ---------- get review data from DB ------- 
         app.get('/review', async (req, res) => {
             const tools = await reviewCollections.find().toArray();
@@ -172,7 +196,8 @@ async function run() {
             }
         });
 
-        //-------------------------- user section ---------------------------------------- 
+        //------------------------------------------------------------------ 
+        //                          user section
         //------------------------------------------------------------------ 
 
         // --====================== normal user =========================
