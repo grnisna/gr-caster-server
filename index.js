@@ -165,6 +165,7 @@ async function run() {
 
         // ------- upsert profile ------
         app.post('/profile',verifyUser,async(req,res)=>{
+            
             const query = req.body;
            
             const result = await profileCollections.insertOne(query);
