@@ -222,11 +222,12 @@ async function run() {
             res.send(result);
         });
         // set admin role -------------- 
-        app.put('/admin/:email', verifyUser, async (req, res) => {
-            const email = req.params.email;
+        app.put('/admin', verifyUser, async (req, res) => {
+            const email = req.query.email;
             const requesterEmail = req.decoded.email;
             const runningRequester = await userCollections.findOne({ email: requesterEmail });
-            if (runningRequester === 'admin') {
+            
+            if (runningRequester.role === 'admin') {
                 const filter = { email: email };
                 const updateRole = {
                     $set: {
