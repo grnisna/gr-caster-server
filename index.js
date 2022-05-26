@@ -250,11 +250,13 @@ async function run() {
 
         });
 
+        // get all booking data form mongodb -----------------
         app.get('/manageorder',async(req,res)=>{
             const result = await bookingCollections.find().toArray();
             res.send(result);
         });
 
+        // update sstatus by admin ------------------
         app.put('/manageorder/:statusId',async(req,res)=>{
             const id = req.params.statusId;
             const filter = {_id:ObjectId(id)};
@@ -264,8 +266,19 @@ async function run() {
                 }
             };
             const result = await bookingCollections.updateOne(filter,updateStatus);
-            res.send(result);
-        })
+            res.send(updateStatus);
+        });
+
+
+        // deleted unpaid booked data ----------------  
+        app.delete('/manageorder/:deletedId',async(req,res)=>{
+            const id = req.params.deletedId;
+            const filter = {_id:ObjectId(id)};
+            const deletedData = await bookingCollections.deleteOne(filter);
+            res.send(deletedData);
+        });
+
+
 
 
 
