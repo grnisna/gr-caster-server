@@ -250,6 +250,23 @@ async function run() {
 
         });
 
+        app.get('/manageorder',async(req,res)=>{
+            const result = await bookingCollections.find().toArray();
+            res.send(result);
+        });
+
+        app.put('/manageorder/:statusId',async(req,res)=>{
+            const id = req.params.statusId;
+            const filter = {_id:ObjectId(id)};
+            const updateStatus = {
+                $set:{
+                    shipped:true
+                }
+            };
+            const result = await bookingCollections.updateOne(filter,updateStatus);
+            res.send(result);
+        })
+
 
 
     }
